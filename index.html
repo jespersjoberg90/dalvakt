@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<title>DALVAKT — regnspaning för fjällfiske</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <div class="topbar">
+    <div class="wordmark"><span class="dot"></span>DALVAKT</div>
+    <div class="topbar-right">
+      <div class="region-tag" id="updatedTag">VÄSTERBOTTENS FJÄLL</div>
+      <div class="refresh-btn" id="refreshBtn">
+        <span class="refresh-icon">↻</span><span>UPPDATERA</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar" id="statusBar"></div>
+
+  <div class="scrubber" id="scrubber"></div>
+
+  <div class="grid">
+    <div class="map-card">
+      <div class="map-header">
+        <div class="map-title">NEDERBÖRD — LEVANDE KARTA</div>
+        <div class="legend">
+          <span><span class="swatch" style="background:var(--dry)"></span>Torrt</span>
+          <span><span class="swatch" style="background:var(--rain-light)"></span>Lätt</span>
+          <span><span class="swatch" style="background:var(--rain-mod)"></span>Måttligt</span>
+          <span><span class="swatch" style="background:var(--rain-heavy)"></span>Kraftigt</span>
+        </div>
+      </div>
+      <div class="map-wrap">
+        <div class="zoom-reset" id="zoomReset">← ZOOMA UT</div>
+        <svg id="mapSvg" viewBox="0 0 720 460" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="radarIntense" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"  stop-color="#B27DEF" stop-opacity="0.75"/>
+              <stop offset="30%" stop-color="#8A5EE0" stop-opacity="0.55"/>
+              <stop offset="60%" stop-color="#4C93E0" stop-opacity="0.35"/>
+              <stop offset="85%" stop-color="#7FD8E8" stop-opacity="0.16"/>
+              <stop offset="100%" stop-color="#7FD8E8" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="radarModerate" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"  stop-color="#5FA8E8" stop-opacity="0.6"/>
+              <stop offset="45%" stop-color="#4C93E0" stop-opacity="0.4"/>
+              <stop offset="75%" stop-color="#7FD8E8" stop-opacity="0.2"/>
+              <stop offset="100%" stop-color="#7FD8E8" stop-opacity="0"/>
+            </radialGradient>
+            <filter id="cloudDistort1" x="-60%" y="-60%" width="220%" height="220%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.012 0.028" numOctaves="3" seed="4" result="noise"/>
+              <feDisplacementMap in="SourceGraphic" in2="noise" scale="70" xChannelSelector="R" yChannelSelector="G"/>
+              <feGaussianBlur stdDeviation="2.5"/>
+            </filter>
+            <filter id="cloudDistort2" x="-60%" y="-60%" width="220%" height="220%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.018 0.02" numOctaves="3" seed="11" result="noise"/>
+              <feDisplacementMap in="SourceGraphic" in2="noise" scale="55" xChannelSelector="R" yChannelSelector="G"/>
+              <feGaussianBlur stdDeviation="2.5"/>
+            </filter>
+            <filter id="cloudDistort3" x="-60%" y="-60%" width="220%" height="220%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.02 0.035" numOctaves="2" seed="19" result="noise"/>
+              <feDisplacementMap in="SourceGraphic" in2="noise" scale="45" xChannelSelector="R" yChannelSelector="G"/>
+              <feGaussianBlur stdDeviation="2"/>
+            </filter>
+          </defs>
+
+          <rect width="720" height="460" fill="var(--bg)"/>
+
+          <g id="mapContent">
+            <g stroke="var(--contour)" fill="none" stroke-width="1">
+              <path d="M-20,80 C120,40 220,110 340,70 C460,30 560,90 740,50"/>
+              <path d="M-20,140 C130,100 230,170 350,130 C470,90 570,150 740,110"/>
+              <path d="M-20,200 C140,160 240,230 360,190 C480,150 580,210 740,170"/>
+              <path d="M-20,260 C150,220 250,290 370,250 C490,210 590,270 740,230"/>
+              <path d="M-20,320 C160,285 260,350 380,310 C500,275 600,330 740,295"/>
+              <path d="M-20,380 C170,350 270,410 390,375 C510,340 610,395 740,360"/>
+            </g>
+            <g stroke="var(--contour-soft)" fill="none" stroke-width="1">
+              <path d="M-20,110 C120,70 220,140 340,100 C460,60 560,120 740,80"/>
+              <path d="M-20,170 C130,130 230,200 350,160 C470,120 570,180 740,140"/>
+              <path d="M-20,230 C140,190 240,260 360,220 C480,180 580,240 740,200"/>
+              <path d="M-20,290 C150,255 250,320 370,280 C490,245 590,300 740,265"/>
+              <path d="M-20,350 C160,315 260,380 380,340 C500,305 600,360 740,325"/>
+            </g>
+
+            <g class="rainband" id="rainbandLayer">
+              <g filter="url(#cloudDistort1)" transform="rotate(-22 120 150)">
+                <ellipse cx="120" cy="150" rx="190" ry="80" fill="url(#radarIntense)">
+                  <animate attributeName="cx" values="70;540;70" dur="28s" repeatCount="indefinite"/>
+                  <animate attributeName="cy" values="110;270;110" dur="28s" repeatCount="indefinite"/>
+                </ellipse>
+              </g>
+              <g filter="url(#cloudDistort2)" transform="rotate(14 500 300)">
+                <ellipse cx="500" cy="300" rx="150" ry="65" fill="url(#radarModerate)">
+                  <animate attributeName="cx" values="610;150;610" dur="21s" repeatCount="indefinite"/>
+                  <animate attributeName="cy" values="360;140;360" dur="21s" repeatCount="indefinite"/>
+                </ellipse>
+              </g>
+              <g filter="url(#cloudDistort3)" transform="rotate(-8 300 380)">
+                <ellipse cx="300" cy="380" rx="120" ry="50" fill="url(#radarIntense)">
+                  <animate attributeName="cx" values="240;450;240" dur="24s" repeatCount="indefinite"/>
+                  <animate attributeName="cy" values="390;210;390" dur="24s" repeatCount="indefinite"/>
+                </ellipse>
+              </g>
+            </g>
+
+            <g id="subLayer"></g>
+            <g id="valleyLayer"></g>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="panel">
+        <div class="panel-title">VALD DALGÅNG</div>
+        <div id="detailBox"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">TORRAST JUST NU</div>
+        <div id="rankBox"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footnote" id="footnote">DATA FRÅN <a href="https://opendata.smhi.se" target="_blank">SMHI ÖPPNA DATA</a> · SNOW1GV1-PROGNOS</div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
