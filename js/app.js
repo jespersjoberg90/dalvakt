@@ -55,11 +55,23 @@ function keyForOffset(offset){
 
 function avg(arr){ return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null; }
 
+// degrees wrap around, so a plain average of e.g. 350° and 10° would wrongly give 180°
+function circularAvgDeg(arr){
+  if(!arr.length) return null;
+  let sinSum = 0, cosSum = 0;
+  arr.forEach(deg=>{
+    const rad = deg * Math.PI/180;
+    sinSum += Math.sin(rad); cosSum += Math.cos(rad);
+  });
+  const deg = Math.atan2(sinSum/arr.length, cosSum/arr.length) * 180/Math.PI;
+  return (deg + 360) % 360;
+}
+
 function processTimeSeries(json){
   const byDay = {}; // dateKey -> {mm, temps:[], winds:[]}
   (json.timeSeries || []).forEach(entry=>{
     const dateKey = stockholmDateKey(new Date(entry.time));
-    if(!byDay[dateKey]) byDay[dateKey] = { mm:0, temps:[], winds:[], hasPrecip:false };
+    if(!byDay[dateKey]) byDay[dateKey] = { mm:0, temps:[], winds:[], winddirs:[], hasPrecip:false };
     const d = entry.data || {};
 
     if(d.precipitation_amount_mean !== undefined && d.precipitation_amount_mean !== 9999){
@@ -71,6 +83,7 @@ function processTimeSeries(json){
     }
     if(d.air_temperature !== undefined && d.air_temperature !== 9999) byDay[dateKey].temps.push(d.air_temperature);
     if(d.wind_speed !== undefined && d.wind_speed !== 9999) byDay[dateKey].winds.push(d.wind_speed);
+    if(d.wind_from_direction !== undefined && d.wind_from_direction !== 9999) byDay[dateKey].winddirs.push(d.wind_from_direction);
   });
   return byDay;
 }
@@ -82,16 +95,17 @@ async function fetchValley(loc){
   const json = await res.json();
   const byDay = processTimeSeries(json);
 
-  const mm = {}, temp = {}, wind = {};
+  const mm = {}, temp = {}, wind = {}, winddir = {};
   days.forEach(d=>{
     const key = keyForOffset(d.offset);
     const rec = byDay[key];
     mm[d.key] = rec ? Math.round(rec.mm * 10) / 10 : null;
     temp[d.key] = rec ? Math.round(avg(rec.temps)) : null;
     wind[d.key] = rec ? Math.round(avg(rec.winds)) : null;
+    winddir[d.key] = rec ? circularAvgDeg(rec.winddirs) : null;
   });
 
-  return { mm, temp, wind, referenceTime: json.referenceTime, error:false };
+  return { mm, temp, wind, winddir, referenceTime: json.referenceTime, error:false };
 }
 
 async function loadAllData(){
@@ -110,11 +124,13 @@ async function loadAllData(){
       loc.mm = r.value.mm;
       loc.temp = r.value.temp;
       loc.wind = r.value.wind;
+      loc.winddir = r.value.winddir;
       if(r.value.referenceTime) lastReferenceTime = r.value.referenceTime;
     } else {
       loc.mm = { today:null, d1:null, d2:null, d3:null };
       loc.temp = { today:null, d1:null, d2:null, d3:null };
       loc.wind = { today:null, d1:null, d2:null, d3:null };
+      loc.winddir = { today:null, d1:null, d2:null, d3:null };
       failed.push(loc.name);
     }
   });
@@ -179,6 +195,7 @@ function renderRainbands(){
     const mm = v.mm ? v.mm[activeDay] : null;
     if(!isWet(mm)) return; // no cloud where it's actually dry
     const tier = RAIN_TIERS.find(t => t.test(mm));
+    const windFrom = v.winddir ? v.winddir[activeDay] : null;
 
     const g = document.createElementNS('http://www.w3.org/2000/svg','g');
     g.setAttribute('filter', `url(#${tier.filter})`);
@@ -190,7 +207,7 @@ function renderRainbands(){
     ellipse.setAttribute('ry', tier.ry);
     ellipse.setAttribute('fill', `url(#${tier.gradient})`);
 
-    // gentle breathing so the band still feels alive without drifting off the real location
+    // gentle breathing so the band still feels alive even when there's no wind reading
     const dur = 16 + i * 2.5;
     const growRx = document.createElementNS('http://www.w3.org/2000/svg','animate');
     growRx.setAttribute('attributeName','rx'); growRx.setAttribute('values', `${tier.rx};${tier.rx*1.18};${tier.rx}`);
@@ -200,6 +217,27 @@ function renderRainbands(){
     growRy.setAttribute('dur', `${dur}s`); growRy.setAttribute('repeatCount','indefinite');
     ellipse.appendChild(growRx);
     ellipse.appendChild(growRy);
+
+    // drift back and forth along the direction the wind is actually carrying the
+    // precipitation (wind_from_direction + 180°), so movement reflects real data
+    // instead of an arbitrary drift — kept small so the band stays over its valley
+    if(windFrom !== null){
+      const moveDir = (windFrom + 180) % 360;
+      const rad = moveDir * Math.PI / 180;
+      const dx = Math.sin(rad), dy = -Math.cos(rad);
+      const amp = Math.min(26, tier.rx * 0.3);
+      const driftDur = dur * 1.3;
+      const driftX = document.createElementNS('http://www.w3.org/2000/svg','animate');
+      driftX.setAttribute('attributeName','cx');
+      driftX.setAttribute('values', `${v.x - dx*amp};${v.x + dx*amp};${v.x - dx*amp}`);
+      driftX.setAttribute('dur', `${driftDur}s`); driftX.setAttribute('repeatCount','indefinite');
+      const driftY = document.createElementNS('http://www.w3.org/2000/svg','animate');
+      driftY.setAttribute('attributeName','cy');
+      driftY.setAttribute('values', `${v.y - dy*amp};${v.y + dy*amp};${v.y - dy*amp}`);
+      driftY.setAttribute('dur', `${driftDur}s`); driftY.setAttribute('repeatCount','indefinite');
+      ellipse.appendChild(driftX);
+      ellipse.appendChild(driftY);
+    }
 
     g.appendChild(ellipse);
     layer.appendChild(g);
