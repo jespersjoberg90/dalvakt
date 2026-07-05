@@ -1,16 +1,21 @@
 /* ---------------- CONFIG: real coordinates for Västerbottens fjäll ---------------- */
+/* x/y hand-placed to preserve each valley's real relative position (lat/lon
+   above) west-east and north-south, grouped into their real-world clusters
+   (Klimpfjäll+Marsfjället south-west, Hemavan+Tärnaby central, Ammarnäs+
+   Vindelfjällen north-east) — not a true geographic projection, but the
+   ordering matches reality so the stylized map isn't misleading. */
 const locations = [
-  { id:'ammarnas',     name:'Ammarnäs',      lat:65.966, lon:16.200, x:150, y:260,
+  { id:'ammarnas',     name:'Ammarnäs',      lat:65.966, lon:16.200, x:460, y:110,
     subs:[ {name:'Aigert', dx:-38, dy:-24}, {name:'Kraddsele', dx:34, dy:20} ] },
-  { id:'tarnaby',      name:'Tärnaby',       lat:65.717, lon:15.267, x:260, y:190,
+  { id:'tarnaby',      name:'Tärnaby',       lat:65.717, lon:15.267, x:380, y:230,
     subs:[ {name:'Laxfjället', dx:-36, dy:22}, {name:'Kraskträsk', dx:32, dy:-22} ] },
-  { id:'hemavan',      name:'Hemavan',       lat:65.817, lon:15.167, x:330, y:150,
+  { id:'hemavan',      name:'Hemavan',       lat:65.817, lon:15.167, x:300, y:195,
     subs:[ {name:'Syterskalet', dx:-40, dy:-18}, {name:'Artfjällsstugan', dx:38, dy:24} ] },
-  { id:'klimpfjall',   name:'Klimpfjäll',    lat:65.050, lon:14.983, x:460, y:120,
+  { id:'klimpfjall',   name:'Klimpfjäll',    lat:65.050, lon:14.983, x:150, y:310,
     subs:[ {name:'Ransarån', dx:-34, dy:24}, {name:'Borkasjön', dx:36, dy:-20} ] },
-  { id:'marsfjallet',  name:'Marsfjället',   lat:65.033, lon:15.033, x:560, y:230,
+  { id:'marsfjallet',  name:'Marsfjället',   lat:65.033, lon:15.033, x:230, y:340,
     subs:[ {name:'Saxnäs', dx:-38, dy:-20}, {name:'Dikanäs', dx:34, dy:22} ] },
-  { id:'vindelfjallen',name:'Vindelfjällen', lat:65.883, lon:16.383, x:400, y:320,
+  { id:'vindelfjallen',name:'Vindelfjällen', lat:65.883, lon:16.383, x:560, y:150,
     subs:[ {name:'Ransaredet', dx:-36, dy:20}, {name:'Gautosjö', dx:38, dy:-22} ] },
 ];
 
