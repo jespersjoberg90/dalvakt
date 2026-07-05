@@ -245,6 +245,22 @@ svg#mapSvg.zoomed{ cursor: zoom-out; }
 
 .rainband{ mix-blend-mode: screen; }
 
+@property --driftx{ syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --drifty{ syntax: '<length>'; inherits: false; initial-value: 0px; }
+
+.rain-cloud{
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: opacity .6s ease, --driftx .8s ease, --drifty .8s ease;
+  animation-name: cloud-drift;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+@keyframes cloud-drift{
+  0%, 100%{ transform: translate(calc(var(--driftx) * -1), calc(var(--drifty) * -1)) scale(1); }
+  50%{ transform: translate(var(--driftx), var(--drifty)) scale(1.18); }
+}
+
 .side{ display:flex; flex-direction:column; gap:16px; }
 @media (min-width:600px){
   .side{ gap:20px; }

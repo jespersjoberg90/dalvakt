@@ -4,8 +4,8 @@
     {
       "name": "dalvakt-static",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8084"],
-      "port": 8084
+      "runtimeArgs": ["-m", "http.server", "8085"],
+      "port": 8085
     }
   ]
 }

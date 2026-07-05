@@ -190,64 +190,67 @@ function colorForMm(mm){
 }
 
 const RAIN_TIERS = [
-  { test: mm => mm > 5, gradient:'radarIntense', rx:110, ry:55, filter:'cloudDistort1' },
-  { test: mm => mm > 2, gradient:'radarModerate', rx:82, ry:42, filter:'cloudDistort2' },
-  { test: mm => true,   gradient:'radarLight',    rx:56, ry:30, filter:'cloudDistort3' },
+  { key:'heavy', test: mm => mm > 5, gradient:'radarIntense', rx:110, ry:55, filter:'cloudDistort1' },
+  { key:'mod',   test: mm => mm > 2, gradient:'radarModerate', rx:82, ry:42, filter:'cloudDistort2' },
+  { key:'light', test: mm => true,   gradient:'radarLight',    rx:56, ry:30, filter:'cloudDistort3' },
 ];
 
-function renderRainbands(){
+// One ellipse per valley per tier, created once and left in the DOM forever.
+// Switching days just crossfades opacity between tiers (CSS transition) and
+// nudges the drift direction, instead of destroying/rebuilding elements —
+// that's what let the old version jump-cut on every day change.
+const rainCloudEls = {};
+
+function ensureRainClouds(){
   const layer = document.getElementById('rainbandLayer');
-  layer.innerHTML = '';
   locations.forEach((v, i)=>{
+    RAIN_TIERS.forEach(tier=>{
+      const key = `${v.id}:${tier.key}`;
+      if(rainCloudEls[key]) return;
+
+      const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+      g.setAttribute('filter', `url(#${tier.filter})`);
+
+      const ellipse = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+      ellipse.setAttribute('cx', v.x);
+      ellipse.setAttribute('cy', v.y);
+      ellipse.setAttribute('rx', tier.rx);
+      ellipse.setAttribute('ry', tier.ry);
+      ellipse.setAttribute('fill', `url(#${tier.gradient})`);
+      ellipse.setAttribute('class', 'rain-cloud');
+      ellipse.style.opacity = '0';
+      ellipse.style.animationDuration = `${16 + i * 2.5}s`;
+      ellipse.style.setProperty('--driftx', '0px');
+      ellipse.style.setProperty('--drifty', '0px');
+
+      g.appendChild(ellipse);
+      layer.appendChild(g);
+      rainCloudEls[key] = ellipse;
+    });
+  });
+}
+
+function renderRainbands(){
+  ensureRainClouds();
+  locations.forEach(v=>{
     const mm = v.mm ? v.mm[activeDay] : null;
-    if(!isWet(mm)) return; // no cloud where it's actually dry
-    const tier = RAIN_TIERS.find(t => t.test(mm));
+    const activeTier = isWet(mm) ? RAIN_TIERS.find(t => t.test(mm)) : null;
     const windFrom = v.winddir ? v.winddir[activeDay] : null;
 
-    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
-    g.setAttribute('filter', `url(#${tier.filter})`);
-
-    const ellipse = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
-    ellipse.setAttribute('cx', v.x);
-    ellipse.setAttribute('cy', v.y);
-    ellipse.setAttribute('rx', tier.rx);
-    ellipse.setAttribute('ry', tier.ry);
-    ellipse.setAttribute('fill', `url(#${tier.gradient})`);
-
-    // gentle breathing so the band still feels alive even when there's no wind reading
-    const dur = 16 + i * 2.5;
-    const growRx = document.createElementNS('http://www.w3.org/2000/svg','animate');
-    growRx.setAttribute('attributeName','rx'); growRx.setAttribute('values', `${tier.rx};${tier.rx*1.18};${tier.rx}`);
-    growRx.setAttribute('dur', `${dur}s`); growRx.setAttribute('repeatCount','indefinite');
-    const growRy = document.createElementNS('http://www.w3.org/2000/svg','animate');
-    growRy.setAttribute('attributeName','ry'); growRy.setAttribute('values', `${tier.ry};${tier.ry*1.18};${tier.ry}`);
-    growRy.setAttribute('dur', `${dur}s`); growRy.setAttribute('repeatCount','indefinite');
-    ellipse.appendChild(growRx);
-    ellipse.appendChild(growRy);
-
-    // drift back and forth along the direction the wind is actually carrying the
-    // precipitation (wind_from_direction + 180°), so movement reflects real data
-    // instead of an arbitrary drift — kept small so the band stays over its valley
+    let dx = 0, dy = 0;
     if(windFrom !== null){
-      const moveDir = (windFrom + 180) % 360;
-      const rad = moveDir * Math.PI / 180;
-      const dx = Math.sin(rad), dy = -Math.cos(rad);
-      const amp = Math.min(26, tier.rx * 0.3);
-      const driftDur = dur * 1.3;
-      const driftX = document.createElementNS('http://www.w3.org/2000/svg','animate');
-      driftX.setAttribute('attributeName','cx');
-      driftX.setAttribute('values', `${v.x - dx*amp};${v.x + dx*amp};${v.x - dx*amp}`);
-      driftX.setAttribute('dur', `${driftDur}s`); driftX.setAttribute('repeatCount','indefinite');
-      const driftY = document.createElementNS('http://www.w3.org/2000/svg','animate');
-      driftY.setAttribute('attributeName','cy');
-      driftY.setAttribute('values', `${v.y - dy*amp};${v.y + dy*amp};${v.y - dy*amp}`);
-      driftY.setAttribute('dur', `${driftDur}s`); driftY.setAttribute('repeatCount','indefinite');
-      ellipse.appendChild(driftX);
-      ellipse.appendChild(driftY);
+      // wind_from_direction + 180° = the direction precipitation is actually heading
+      const rad = ((windFrom + 180) % 360) * Math.PI / 180;
+      dx = Math.sin(rad); dy = -Math.cos(rad);
     }
 
-    g.appendChild(ellipse);
-    layer.appendChild(g);
+    RAIN_TIERS.forEach(tier=>{
+      const el = rainCloudEls[`${v.id}:${tier.key}`];
+      el.style.opacity = (activeTier && activeTier.key === tier.key) ? '1' : '0';
+      const amp = Math.min(26, tier.rx * 0.3);
+      el.style.setProperty('--driftx', `${(dx * amp).toFixed(2)}px`);
+      el.style.setProperty('--drifty', `${(dy * amp).toFixed(2)}px`);
+    });
   });
 }
 
