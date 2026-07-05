@@ -54,6 +54,11 @@
               <stop offset="75%" stop-color="#7FD8E8" stop-opacity="0.2"/>
               <stop offset="100%" stop-color="#7FD8E8" stop-opacity="0"/>
             </radialGradient>
+            <radialGradient id="radarLight" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"  stop-color="#7FD8E8" stop-opacity="0.5"/>
+              <stop offset="55%" stop-color="#7FD8E8" stop-opacity="0.28"/>
+              <stop offset="100%" stop-color="#7FD8E8" stop-opacity="0"/>
+            </radialGradient>
             <filter id="cloudDistort1" x="-60%" y="-60%" width="220%" height="220%">
               <feTurbulence type="fractalNoise" baseFrequency="0.012 0.028" numOctaves="3" seed="4" result="noise"/>
               <feDisplacementMap in="SourceGraphic" in2="noise" scale="70" xChannelSelector="R" yChannelSelector="G"/>
@@ -90,26 +95,7 @@
               <path d="M-20,350 C160,315 260,380 380,340 C500,305 600,360 740,325"/>
             </g>
 
-            <g class="rainband" id="rainbandLayer">
-              <g filter="url(#cloudDistort1)" transform="rotate(-22 120 150)">
-                <ellipse cx="120" cy="150" rx="190" ry="80" fill="url(#radarIntense)">
-                  <animate attributeName="cx" values="70;540;70" dur="28s" repeatCount="indefinite"/>
-                  <animate attributeName="cy" values="110;270;110" dur="28s" repeatCount="indefinite"/>
-                </ellipse>
-              </g>
-              <g filter="url(#cloudDistort2)" transform="rotate(14 500 300)">
-                <ellipse cx="500" cy="300" rx="150" ry="65" fill="url(#radarModerate)">
-                  <animate attributeName="cx" values="610;150;610" dur="21s" repeatCount="indefinite"/>
-                  <animate attributeName="cy" values="360;140;360" dur="21s" repeatCount="indefinite"/>
-                </ellipse>
-              </g>
-              <g filter="url(#cloudDistort3)" transform="rotate(-8 300 380)">
-                <ellipse cx="300" cy="380" rx="120" ry="50" fill="url(#radarIntense)">
-                  <animate attributeName="cx" values="240;450;240" dur="24s" repeatCount="indefinite"/>
-                  <animate attributeName="cy" values="390;210;390" dur="24s" repeatCount="indefinite"/>
-                </ellipse>
-              </g>
-            </g>
+            <g class="rainband" id="rainbandLayer"></g>
 
             <g id="subLayer"></g>
             <g id="valleyLayer"></g>

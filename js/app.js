@@ -166,6 +166,46 @@ function colorForMm(mm){
   return 'var(--rain-light)';
 }
 
+const RAIN_TIERS = [
+  { test: mm => mm > 5, gradient:'radarIntense', rx:110, ry:55, filter:'cloudDistort1' },
+  { test: mm => mm > 2, gradient:'radarModerate', rx:82, ry:42, filter:'cloudDistort2' },
+  { test: mm => true,   gradient:'radarLight',    rx:56, ry:30, filter:'cloudDistort3' },
+];
+
+function renderRainbands(){
+  const layer = document.getElementById('rainbandLayer');
+  layer.innerHTML = '';
+  locations.forEach((v, i)=>{
+    const mm = v.mm ? v.mm[activeDay] : null;
+    if(!isWet(mm)) return; // no cloud where it's actually dry
+    const tier = RAIN_TIERS.find(t => t.test(mm));
+
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('filter', `url(#${tier.filter})`);
+
+    const ellipse = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+    ellipse.setAttribute('cx', v.x);
+    ellipse.setAttribute('cy', v.y);
+    ellipse.setAttribute('rx', tier.rx);
+    ellipse.setAttribute('ry', tier.ry);
+    ellipse.setAttribute('fill', `url(#${tier.gradient})`);
+
+    // gentle breathing so the band still feels alive without drifting off the real location
+    const dur = 16 + i * 2.5;
+    const growRx = document.createElementNS('http://www.w3.org/2000/svg','animate');
+    growRx.setAttribute('attributeName','rx'); growRx.setAttribute('values', `${tier.rx};${tier.rx*1.18};${tier.rx}`);
+    growRx.setAttribute('dur', `${dur}s`); growRx.setAttribute('repeatCount','indefinite');
+    const growRy = document.createElementNS('http://www.w3.org/2000/svg','animate');
+    growRy.setAttribute('attributeName','ry'); growRy.setAttribute('values', `${tier.ry};${tier.ry*1.18};${tier.ry}`);
+    growRy.setAttribute('dur', `${dur}s`); growRy.setAttribute('repeatCount','indefinite');
+    ellipse.appendChild(growRx);
+    ellipse.appendChild(growRy);
+
+    g.appendChild(ellipse);
+    layer.appendChild(g);
+  });
+}
+
 function renderMap(){
   const layer = document.getElementById('valleyLayer');
   layer.innerHTML = '';
@@ -334,6 +374,7 @@ window.selectValley = function(id){ activeValley = id; renderAll(); };
 
 function renderAll(){
   renderScrubber();
+  renderRainbands();
   renderMap();
   renderSubVillages();
   renderDetail();
