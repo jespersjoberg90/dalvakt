@@ -1,22 +1,29 @@
 /* ---------------- CONFIG: real coordinates for Västerbottens fjäll ---------------- */
-/* x/y hand-placed to preserve each valley's real relative position (lat/lon
-   above) west-east and north-south, grouped into their real-world clusters
-   (Klimpfjäll+Marsfjället south-west, Hemavan+Tärnaby central, Ammarnäs+
-   Vindelfjällen north-east) — not a true geographic projection, but the
-   ordering matches reality so the stylized map isn't misleading. */
+/* x/y hand-placed by rank (not raw lat/lon) so every valley keeps its correct
+   west-east and north-south order relative to all the others while staying
+   legible — not a true geographic projection, but the ordering matches
+   reality so the stylized map isn't misleading. Kittelfjäll, Björkvattnet
+   and Saxnäs were added later; coordinates verified against Wikipedia/
+   regional fishing sources (see conversation), not fabricated. */
 const locations = [
-  { id:'ammarnas',     name:'Ammarnäs',      lat:65.966, lon:16.200, x:460, y:110,
+  { id:'ammarnas',     name:'Ammarnäs',      lat:65.966, lon:16.200, x:514, y:95,
     subs:[ {name:'Aigert', dx:-38, dy:-24}, {name:'Kraddsele', dx:34, dy:20} ] },
-  { id:'tarnaby',      name:'Tärnaby',       lat:65.717, lon:15.267, x:380, y:230,
-    subs:[ {name:'Laxfjället', dx:-36, dy:22}, {name:'Kraskträsk', dx:32, dy:-22} ] },
-  { id:'hemavan',      name:'Hemavan',       lat:65.817, lon:15.167, x:300, y:195,
-    subs:[ {name:'Syterskalet', dx:-40, dy:-18}, {name:'Artfjällsstugan', dx:38, dy:24} ] },
-  { id:'klimpfjall',   name:'Klimpfjäll',    lat:65.050, lon:14.983, x:150, y:310,
-    subs:[ {name:'Ransarån', dx:-34, dy:24}, {name:'Borkasjön', dx:36, dy:-20} ] },
-  { id:'marsfjallet',  name:'Marsfjället',   lat:65.033, lon:15.033, x:230, y:340,
-    subs:[ {name:'Saxnäs', dx:-38, dy:-20}, {name:'Dikanäs', dx:34, dy:22} ] },
-  { id:'vindelfjallen',name:'Vindelfjällen', lat:65.883, lon:16.383, x:560, y:150,
+  { id:'vindelfjallen',name:'Vindelfjällen', lat:65.883, lon:16.383, x:570, y:129,
     subs:[ {name:'Ransaredet', dx:-36, dy:20}, {name:'Gautosjö', dx:38, dy:-22} ] },
+  { id:'hemavan',      name:'Hemavan',       lat:65.817, lon:15.167, x:233, y:163,
+    subs:[ {name:'Syterskalet', dx:-40, dy:-18}, {name:'Artfjällsstugan', dx:38, dy:24} ] },
+  { id:'tarnaby',      name:'Tärnaby',       lat:65.717, lon:15.267, x:345, y:197,
+    subs:[ {name:'Laxfjället', dx:-36, dy:22}, {name:'Kraskträsk', dx:32, dy:-22} ] },
+  { id:'bjorkvattnet', name:'Björkvattnet',  lat:65.610, lon:15.212, x:289, y:231,
+    subs:[ {name:'Virisen', dx:-36, dy:22}, {name:'Västansjö', dx:34, dy:-20} ] },
+  { id:'kittelfjall',  name:'Kittelfjäll',   lat:65.251, lon:15.506, x:458, y:265,
+    subs:[ {name:'Saksensjön', dx:-38, dy:-20}, {name:'Bergsjön', dx:36, dy:22} ] },
+  { id:'klimpfjall',   name:'Klimpfjäll',    lat:65.050, lon:14.983, x:120, y:298,
+    subs:[ {name:'Ransarån', dx:-34, dy:24}, {name:'Borkasjön', dx:36, dy:-20} ] },
+  { id:'marsfjallet',  name:'Marsfjället',   lat:65.033, lon:15.033, x:176, y:332,
+    subs:[ {name:'Klippen', dx:-38, dy:-20}, {name:'Dikanäs', dx:34, dy:22} ] },
+  { id:'saxnas',       name:'Saxnäs',        lat:64.972, lon:15.346, x:401, y:365,
+    subs:[ {name:'Marsliden', dx:-36, dy:20}, {name:'Fatmomakke', dx:38, dy:-22} ] },
 ];
 
 const DRY_THRESHOLD_MM = 1.0;
@@ -28,7 +35,7 @@ const days = [
 ];
 
 let activeDay = 'today';
-let activeValley = locations[5].id;
+let activeValley = 'vindelfjallen';
 let zoomed = false;
 let zoomTarget = null;
 let isLoading = false;

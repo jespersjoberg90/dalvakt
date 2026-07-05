@@ -32,6 +32,25 @@ https://opendata-download-metfcst.smhi.se/api/category/snow1g/version/1/geotype/
 Torrt/fiskbart definieras som `< 1.0 mm` nederbörd för dygnet
 (`DRY_THRESHOLD_MM` i [js/app.js](js/app.js)).
 
+## Dalgångar
+
+| Dalgång | lat | lon | Källa/anmärkning |
+|---|---|---|---|
+| Ammarnäs | 65.966 | 16.200 | |
+| Vindelfjällen (Ransaredet) | 65.883 | 16.383 | |
+| Hemavan | 65.817 | 15.167 | |
+| Tärnaby | 65.717 | 15.267 | |
+| Björkvattnet | 65.610 | 15.212 | Fiskevårdsområde (öring/röding), Wikipedia (Stor-Björkvattnet) |
+| Kittelfjäll | 65.251 | 15.506 | Wikipedia; känt harr/röding/öring-fiske (Saksensjön m.fl.) |
+| Klimpfjäll | 65.050 | 14.983 | |
+| Marsfjället | 65.033 | 15.033 | |
+| Saxnäs | 64.972 | 15.346 | Wikipedia; by vid Kultsjön med eget Fiskecentrum |
+
+Kartans x/y-koordinater är handplacerade efter rangordning (inte råa lat/lon)
+så att varje dalgångs öst-väst/nord-syd-relation till alla andra stämmer,
+utan att vara en geografisk projektion — se kommentaren i
+[js/app.js](js/app.js).
+
 ## Struktur
 
 ```
